@@ -1,0 +1,6 @@
+@LogiSmart.API_HostAddress = http://localhost:5139
+
+GET {{LogiSmart.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
