@@ -1,34 +1,7 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import api from '../../api/axios';
-import { StatCard, Table, Badge } from '../UI';
-
-const p = { padding: '28px 0', height: '100%', overflowY: 'auto' };
-const row = { display: 'flex', gap: 16, padding: '0 28px 20px', flexWrap: 'wrap' };
-
-function Header({ title, sub }) {
-    return (
-        <div style={{ padding: '14px 28px 20px', borderBottom: '1px solid #1e2d40', marginBottom: 20, background: '#111827' }}>
-            <div style={{ fontSize: 20, fontWeight: 800 }}>{title}</div>
-            <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{sub}</div>
-        </div>
-    );
-}
-
-function Tabs({ tabs, labels, active, onChange }) {
-    return (
-        <div style={{ display: 'flex', gap: 8, padding: '0 28px 16px' }}>
-            {tabs.map((tab, i) => (
-                <button key={tab} onClick={() => onChange(tab)} style={{
-                    background: active === tab ? '#1e2d40' : 'transparent',
-                    border: `1px solid ${active === tab ? '#f59e0b' : '#1e2d40'}`,
-                    color: active === tab ? '#f59e0b' : '#64748b',
-                    padding: '6px 16px', borderRadius: 20, fontSize: 12,
-                    cursor: 'pointer', fontFamily: 'monospace', fontWeight: active === tab ? 700 : 400,
-                }}>{labels[i]}</button>
-            ))}
-        </div>
-    );
-}
+import { useAuth } from '../../context/AuthContext';
+import { StatCard, StatRow, Table, Badge, PageHeader, Tabs } from '../UI';
 
 const emptyForm = {
     origin: '', destination: '', cargoWeightTons: '', cargoDescription: '',
@@ -36,16 +9,37 @@ const emptyForm = {
     vehicleId: '', driverId: '', customerId: '',
 };
 
+const inputStyle = {
+    background: 'var(--surface-2)',
+    border: '1px solid var(--border)',
+    borderRadius: 8,
+    padding: '10px 12px',
+    color: 'var(--text-primary)',
+    fontSize: 13,
+    outline: 'none',
+    fontFamily: 'var(--font-sans)',
+    width: '100%',
+    boxSizing: 'border-box',
+    transition: 'border-color 0.2s, box-shadow 0.2s, background 0.2s',
+};
+
+const labelStyle = {
+    fontSize: 11, color: 'var(--text-secondary)',
+    fontWeight: 600, letterSpacing: 0.5,
+    fontFamily: 'var(--font-sans)',
+};
+
 export default function OpsManagerDashboard() {
-    const [trips, setTrips] = useState([]);
-    const [vehicles, setVehicles] = useState([]);
-    const [drivers, setDrivers] = useState([]);
+    const { user }                  = useAuth();
+    const [trips, setTrips]         = useState([]);
+    const [vehicles, setVehicles]   = useState([]);
+    const [drivers, setDrivers]     = useState([]);
     const [customers, setCustomers] = useState([]);
-    const [tab, setTab] = useState('trips');
+    const [tab, setTab]             = useState('trips');
     const [showModal, setShowModal] = useState(false);
-    const [form, setForm] = useState(emptyForm);
+    const [form, setForm]           = useState(emptyForm);
     const [submitting, setSubmitting] = useState(false);
-    const [error, setError] = useState('');
+    const [error, setError]         = useState('');
 
     const fetchAll = () => {
         api.get('/trip').then(r => setTrips(r.data)).catch(() => {});
@@ -61,14 +55,13 @@ export default function OpsManagerDashboard() {
     const handleSubmit = async () => {
         setError('');
         if (!form.origin || !form.destination || !form.vehicleId || !form.driverId || !form.customerId) {
-            setError('Lütfen tüm zorunlu alanları doldurun.');
+            setError('Lütfen zorunlu (*) alanları doldurun.');
             return;
         }
         setSubmitting(true);
         try {
             await api.post('/trip', {
-                origin: form.origin,
-                destination: form.destination,
+                origin: form.origin, destination: form.destination,
                 cargoWeightTons: parseFloat(form.cargoWeightTons),
                 cargoDescription: form.cargoDescription,
                 plannedDepartureDate: new Date(form.plannedDepartureDate).toISOString(),
@@ -76,10 +69,9 @@ export default function OpsManagerDashboard() {
                 vehicleId: parseInt(form.vehicleId),
                 driverId: parseInt(form.driverId),
                 customerId: parseInt(form.customerId),
+                operationsManagerId: user.userId,
             });
-            setShowModal(false);
-            setForm(emptyForm);
-            fetchAll();
+            setShowModal(false); setForm(emptyForm); fetchAll();
         } catch (e) {
             setError(e.response?.data?.message || 'Sefer oluşturulamadı.');
         } finally {
@@ -87,45 +79,56 @@ export default function OpsManagerDashboard() {
         }
     };
 
+    const closeModal = () => { setShowModal(false); setError(''); setForm(emptyForm); };
+
+    const createBtn = (
+        <button
+            onClick={() => setShowModal(true)}
+            style={{
+                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                border: 'none', color: '#000',
+                padding: '9px 20px', borderRadius: 'var(--radius-md)',
+                fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                fontFamily: 'var(--font-sans)',
+                transition: 'transform 0.15s, box-shadow 0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(245,158,11,0.4)'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
+        >
+            + Yeni Sefer
+        </button>
+    );
+
     return (
-        <div style={p}>
-            <Header title="Operasyon Yöneticisi" sub="Sefer planlama ve filo koordinasyonu" />
+        <div style={{ padding: '0 0 32px', height: '100%', overflowY: 'auto' }}>
+            <PageHeader
+                title="Operasyon Yöneticisi"
+                sub="Sefer planlama ve filo koordinasyonu"
+                breadcrumb="Operasyonlar"
+                action={createBtn}
+            />
 
-            <div style={row}>
-                <StatCard label="Aktif Sefer"   value={trips.filter(t => t.status === 'InTransit').length} color="#3b82f6" />
-                <StatCard label="Planlı Sefer"  value={trips.filter(t => t.status === 'Planned').length}   color="#8b5cf6" />
-                <StatCard label="Müsait Araç"   value={vehicles.length}                                     color="#10b981" />
-                <StatCard label="Tamamlanan"    value={trips.filter(t => t.status === 'Delivered').length}  color="#f59e0b" />
-            </div>
+            <StatRow>
+                <StatCard label="Aktif Sefer"  value={trips.filter(t => t.status === 'InTransit').length} color="var(--blue)"   icon="🚛" />
+                <StatCard label="Planlı Sefer" value={trips.filter(t => t.status === 'Planned').length}   color="var(--purple)" icon="📋" />
+                <StatCard label="Müsait Araç"  value={vehicles.length}                                     color="var(--green)"  icon="🚘" />
+                <StatCard label="Tamamlanan"   value={trips.filter(t => t.status === 'Delivered').length}  color="var(--accent)" icon="✅" />
+            </StatRow>
 
-            {/* Tab bar + buton */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 28px 16px' }}>
-                <div style={{ display: 'flex', gap: 8 }}>
-                    {['trips', 'vehicles'].map((t, i) => (
-                        <button key={t} onClick={() => setTab(t)} style={{
-                            background: tab === t ? '#1e2d40' : 'transparent',
-                            border: `1px solid ${tab === t ? '#f59e0b' : '#1e2d40'}`,
-                            color: tab === t ? '#f59e0b' : '#64748b',
-                            padding: '6px 16px', borderRadius: 20, fontSize: 12,
-                            cursor: 'pointer', fontFamily: 'monospace', fontWeight: tab === t ? 700 : 400,
-                        }}>{['Tüm Seferler', 'Müsait Araçlar'][i]}</button>
-                    ))}
-                </div>
-                <button onClick={() => setShowModal(true)} style={{
-                    background: '#f59e0b', border: 'none', color: '#000',
-                    padding: '8px 20px', borderRadius: 20, fontSize: 12,
-                    cursor: 'pointer', fontWeight: 700, fontFamily: 'monospace',
-                }}>+ Yeni Sefer Oluştur</button>
-            </div>
+            <Tabs
+                tabs={['trips', 'vehicles']}
+                labels={['Tüm Seferler', 'Müsait Araçlar']}
+                active={tab}
+                onChange={setTab}
+            />
 
             {tab === 'trips' && (
                 <Table
                     headers={['Kod', 'Güzergah', 'Sürücü', 'Araç', 'Tarih', 'Durum']}
                     rows={trips.map(t => [
-                        <span style={{ color: '#f59e0b', fontWeight: 700 }}>{t.tripCode}</span>,
+                        <span style={{ color: 'var(--accent)', fontWeight: 700 }}>{t.tripCode}</span>,
                         `${t.origin} → ${t.destination}`,
-                        t.driverName,
-                        t.vehiclePlate,
+                        t.driverName, t.vehiclePlate,
                         new Date(t.plannedDepartureDate).toLocaleDateString('tr-TR'),
                         <Badge status={t.status} />,
                     ])}
@@ -135,102 +138,122 @@ export default function OpsManagerDashboard() {
                 <Table
                     headers={['Plaka', 'Marka', 'Model', 'Max Yük', 'Km']}
                     rows={vehicles.map(v => [
-                        <span style={{ color: '#f59e0b', fontWeight: 700 }}>{v.plateNumber}</span>,
+                        <span style={{ color: 'var(--accent)', fontWeight: 700 }}>{v.plateNumber}</span>,
                         v.brand, v.model, `${v.maxLoadCapacityTons}t`,
-                        v.mileage?.toLocaleString(),
+                        v.mileage?.toLocaleString('tr-TR'),
                     ])}
                 />
             )}
 
-            {/* MODAL */}
+            {/* ── Modal ───────────────────────────────────── */}
             {showModal && (
                 <div style={{
-                    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
+                    position: 'fixed', inset: 0,
+                    background: 'rgba(0,0,0,0.75)',
+                    backdropFilter: 'blur(4px)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
-                }}>
+                }} onClick={e => { if (e.target === e.currentTarget) closeModal(); }}>
                     <div style={{
-                        background: '#111827', border: '1px solid #1e2d40', borderRadius: 16,
-                        padding: 32, width: 540, maxHeight: '90vh', overflowY: 'auto',
-                        boxShadow: '0 25px 60px rgba(0,0,0,0.6)',
+                        background: 'var(--surface)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 'var(--radius-xl)',
+                        padding: 32, width: 560,
+                        maxHeight: '90vh', overflowY: 'auto',
+                        boxShadow: 'var(--shadow-lg)',
+                        animation: 'fadeInUp 0.25s ease forwards',
                     }}>
+                        {/* Modal header */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                             <div>
-                                <div style={{ fontSize: 18, fontWeight: 800 }}>Yeni Sefer Oluştur</div>
-                                <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Tüm alanları eksiksiz doldurun</div>
+                                <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-primary)' }}>Yeni Sefer Oluştur</div>
+                                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 3 }}>Zorunlu alanlar (*) ile işaretlidir</div>
                             </div>
-                            <button onClick={() => { setShowModal(false); setError(''); setForm(emptyForm); }} style={{
-                                background: 'transparent', border: '1px solid #1e2d40', color: '#64748b',
-                                width: 32, height: 32, borderRadius: 8, cursor: 'pointer', fontSize: 16,
+                            <button onClick={closeModal} style={{
+                                background: 'transparent', border: '1px solid var(--border)',
+                                color: 'var(--text-muted)', width: 32, height: 32,
+                                borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: 16,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
                             }}>✕</button>
                         </div>
 
                         {error && (
-                            <div style={{ background: '#3f0f0f', border: '1px solid #ef4444', color: '#ef4444', padding: '10px 14px', borderRadius: 8, fontSize: 12, marginBottom: 16 }}>
-                                {error}
-                            </div>
+                            <div style={{
+                                background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)',
+                                color: '#DC2626', padding: '10px 14px', borderRadius: 8,
+                                fontSize: 13, marginBottom: 16,
+                            }}>⚠ {error}</div>
                         )}
 
+                        {/* Text inputs grid */}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                             {[
-                                { name: 'origin',             label: 'Çıkış Noktası *',    type: 'text',           placeholder: 'İstanbul (Tuzla OSB)' },
-                                { name: 'destination',         label: 'Varış Noktası *',    type: 'text',           placeholder: 'Ankara (OSTİM)' },
+                                { name: 'origin',              label: 'Çıkış Noktası *',    type: 'text',           placeholder: 'İstanbul (Tuzla OSB)' },
+                                { name: 'destination',         label: 'Varış Noktası *',     type: 'text',           placeholder: 'Ankara (OSTİM)' },
                                 { name: 'cargoWeightTons',     label: 'Yük Ağırlığı (ton)', type: 'number',         placeholder: '18.5' },
-                                { name: 'estimatedDistanceKm', label: 'Mesafe (km)',        type: 'number',         placeholder: '450' },
-                                { name: 'plannedDepartureDate',label: 'Planlı Kalkış *',   type: 'datetime-local', placeholder: '' },
+                                { name: 'estimatedDistanceKm', label: 'Mesafe (km)',         type: 'number',         placeholder: '450' },
+                                { name: 'plannedDepartureDate',label: 'Planlı Kalkış *',    type: 'datetime-local', placeholder: '' },
                                 { name: 'cargoDescription',    label: 'Kargo Açıklaması',   type: 'text',           placeholder: 'Çelik Rulo' },
                             ].map(f => (
-                                <div key={f.name} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                                    <label style={{ fontSize: 10, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>{f.label}</label>
+                                <div key={f.name} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                                    <label style={labelStyle}>{f.label}</label>
                                     <input
                                         name={f.name} type={f.type} value={form[f.name]}
                                         onChange={handleChange} placeholder={f.placeholder}
-                                        style={{ background: '#1e2d40', border: '1px solid #2d3f55', borderRadius: 8, padding: '9px 12px', color: '#e2e8f0', fontSize: 13, outline: 'none', fontFamily: 'monospace' }}
+                                        style={inputStyle}
+                                        onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 3px var(--accent-dim)'; e.target.style.background = 'var(--surface)'; }}
+                                        onBlur={e =>  { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; e.target.style.background = 'var(--surface-2)'; }}
                                     />
                                 </div>
                             ))}
                         </div>
 
-                        {/* Select'ler */}
+                        {/* Selects */}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginTop: 14 }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                                <label style={{ fontSize: 10, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>Araç *</label>
-                                <select name="vehicleId" value={form.vehicleId} onChange={handleChange}
-                                        style={{ background: '#1e2d40', border: '1px solid #2d3f55', borderRadius: 8, padding: '9px 12px', color: '#e2e8f0', fontSize: 12, outline: 'none', fontFamily: 'monospace' }}>
-                                    <option value="">Seç...</option>
-                                    {vehicles.map(v => <option key={v.id} value={v.id}>{v.plateNumber} ({v.maxLoadCapacityTons}t)</option>)}
-                                </select>
-                            </div>
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                                <label style={{ fontSize: 10, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>Sürücü *</label>
-                                <select name="driverId" value={form.driverId} onChange={handleChange}
-                                        style={{ background: '#1e2d40', border: '1px solid #2d3f55', borderRadius: 8, padding: '9px 12px', color: '#e2e8f0', fontSize: 12, outline: 'none', fontFamily: 'monospace' }}>
-                                    <option value="">Seç...</option>
-                                    {drivers.map(d => <option key={d.id} value={d.id}>{d.fullName}</option>)}
-                                </select>
-                            </div>
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                                <label style={{ fontSize: 10, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>Müşteri *</label>
-                                <select name="customerId" value={form.customerId} onChange={handleChange}
-                                        style={{ background: '#1e2d40', border: '1px solid #2d3f55', borderRadius: 8, padding: '9px 12px', color: '#e2e8f0', fontSize: 12, outline: 'none', fontFamily: 'monospace' }}>
-                                    <option value="">Seç...</option>
-                                    {customers.map(c => <option key={c.id} value={c.id}>{c.fullName}</option>)}
-                                </select>
-                            </div>
+                            {[
+                                { name: 'vehicleId',  label: 'Araç *',    options: vehicles.map(v => ({ value: v.id, label: `${v.plateNumber} (${v.maxLoadCapacityTons}t)` })) },
+                                { name: 'driverId',   label: 'Sürücü *',  options: drivers.map(d => ({ value: d.id, label: d.fullName })) },
+                                { name: 'customerId', label: 'Müşteri *', options: customers.map(c => ({ value: c.id, label: c.fullName })) },
+                            ].map(sel => (
+                                <div key={sel.name} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                                    <label style={labelStyle}>{sel.label}</label>
+                                    <select
+                                        name={sel.name} value={form[sel.name]} onChange={handleChange}
+                                        style={inputStyle}
+                                        onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 3px var(--accent-dim)'; e.target.style.background = 'var(--surface)'; }}
+                                        onBlur={e =>  { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; e.target.style.background = 'var(--surface-2)'; }}
+                                    >
+                                        <option value="">Seç...</option>
+                                        {sel.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                                    </select>
+                                </div>
+                            ))}
                         </div>
 
-                        {/* Butonlar */}
                         <div style={{ display: 'flex', gap: 10, marginTop: 24, justifyContent: 'flex-end' }}>
-                            <button onClick={() => { setShowModal(false); setError(''); setForm(emptyForm); }} style={{
-                                background: 'transparent', border: '1px solid #1e2d40', color: '#64748b',
-                                padding: '10px 20px', borderRadius: 8, cursor: 'pointer', fontFamily: 'monospace', fontSize: 13,
-                            }}>İptal</button>
+                            <button onClick={closeModal} style={{
+                                background: 'var(--surface-2)',
+                                border: '1px solid var(--border)',
+                                color: 'var(--text-secondary)', padding: '10px 22px',
+                                borderRadius: 8, cursor: 'pointer',
+                                fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 500,
+                                transition: 'background 0.15s',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-3)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'var(--surface-2)'}
+                            >İptal</button>
                             <button onClick={handleSubmit} disabled={submitting} style={{
-                                background: submitting ? '#78350f' : '#f59e0b', border: 'none', color: '#000',
+                                background: submitting ? 'var(--surface-3)' : 'var(--accent)',
+                                border: 'none', color: '#FFFFFF',
                                 padding: '10px 24px', borderRadius: 8, cursor: 'pointer',
-                                fontWeight: 700, fontFamily: 'monospace', fontSize: 13,
-                            }}>{submitting ? 'Oluşturuluyor...' : 'Sefer Oluştur ✓'}</button>
+                                fontWeight: 700, fontFamily: 'var(--font-sans)', fontSize: 13,
+                                opacity: submitting ? 0.7 : 1,
+                                transition: 'filter 0.15s, box-shadow 0.15s',
+                            }}
+                            onMouseEnter={e => { if (!submitting) { e.currentTarget.style.filter = 'brightness(1.08)'; e.currentTarget.style.boxShadow = '0 4px 14px var(--accent-dim)'; }}}
+                            onMouseLeave={e => { e.currentTarget.style.filter = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
+                            >
+                                {submitting ? 'Oluşturuluyor...' : 'Sefer Oluştur ✓'}
+                            </button>
                         </div>
                     </div>
                 </div>

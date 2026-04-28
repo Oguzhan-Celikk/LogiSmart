@@ -1,4 +1,5 @@
-﻿import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import AdminDashboard from '../components/dashboards/AdminDashboard';
 import OpsManagerDashboard from '../components/dashboards/OpsManagerDashboard';
 import DriverDashboard from '../components/dashboards/DriverDashboard';
@@ -6,17 +7,43 @@ import CustomerDashboard from '../components/dashboards/CustomerDashboard';
 import TechnicianDashboard from '../components/dashboards/TechnicianDashboard';
 import FinanceDashboard from '../components/dashboards/FinanceDashboard';
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
+const ROLE_COLOR = {
+    Admin:                '#ef4444',
+    OperationsManager:    '#6366f1',
+    Driver:               '#3b82f6',
+    Customer:             '#10b981',
+    MaintenanceTechnician:'#f59e0b',
+    FinanceSpecialist:    '#8b5cf6',
+};
+
+const ROLE_LABEL = {
+    Admin:                'SİSTEM YÖNETİCİSİ',
+    OperationsManager:    'OPERASYON YÖNETİCİSİ',
+    Driver:               'SÜRÜCÜ',
+    Customer:             'MÜŞTERİ',
+    MaintenanceTechnician:'TEKNİSYEN',
+    FinanceSpecialist:    'FİNANS UZMANI',
+};
 
 export default function Dashboard() {
     const { user, logout } = useAuth();
+    const { isDark, toggle } = useTheme();
     const navigate = useNavigate();
+    const [time, setTime] = useState(new Date());
 
     useEffect(() => {
         if (!user) navigate('/');
     }, [user]);
 
+    useEffect(() => {
+        const t = setInterval(() => setTime(new Date()), 1000);
+        return () => clearInterval(t);
+    }, []);
+
     const handleLogout = () => { logout(); navigate('/'); };
+    const accentColor = ROLE_COLOR[user?.role] || '#f59e0b';
 
     const renderDashboard = () => {
         switch (user?.role) {
@@ -26,56 +53,220 @@ export default function Dashboard() {
             case 'Customer':               return <CustomerDashboard />;
             case 'MaintenanceTechnician':  return <TechnicianDashboard />;
             case 'FinanceSpecialist':      return <FinanceDashboard />;
-            default: return <div style={{color:'#fff',padding:40}}>Bilinmeyen rol.</div>;
+            default: return <div style={{color:'var(--text-secondary)',padding:40}}>Bilinmeyen rol.</div>;
         }
     };
 
+    const initials = user?.fullName
+        ? user.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+        : '?';
+
     return (
-        <div style={{ display: 'flex', height: '100vh', background: '#0a0f1e', color: '#e2e8f0', fontFamily: 'monospace' }}>
-            {/* Sidebar */}
-            <div style={{ width: 220, background: '#111827', borderRight: '1px solid #1e2d40', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '24px 20px', borderBottom: '1px solid #1e2d40' }}>
-                    <div style={{ width: 36, height: 36, background: '#f59e0b', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 900, color: '#000' }}>L</div>
+        <div style={s.layout}>
+            {/* ── Sidebar ─────────────────────────────── */}
+            <aside style={s.sidebar}>
+                {/* Brand */}
+                <div style={s.brand}>
+                    <div style={s.brandLogo}>L</div>
                     <div>
-                        <div style={{ fontSize: 15, fontWeight: 800 }}>LogiSmart</div>
-                        <div style={{ fontSize: 9, color: '#64748b', letterSpacing: 2 }}>FLEET ERP</div>
+                        <div style={s.brandName}>LogiSmart</div>
+                        <div style={s.brandTag}>FLEET ERP</div>
                     </div>
                 </div>
 
-                <div style={{ padding: '16px 20px', borderBottom: '1px solid #1e2d40' }}>
-                    <div style={{ fontSize: 13, fontWeight: 700 }}>{user?.fullName}</div>
-                    <div style={{ fontSize: 11, color: '#f59e0b', marginTop: 2 }}>{user?.role}</div>
-                    <div style={{ fontSize: 10, color: '#64748b', marginTop: 4 }}>JWT Auth ✓</div>
+                {/* User card */}
+                <div style={s.userCard}>
+                    <div style={{ ...s.avatar, background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}99 100%)` }}>
+                        {initials}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={s.userName}>{user?.fullName}</div>
+                        <div style={{ ...s.userRole, color: accentColor }}>{ROLE_LABEL[user?.role] || user?.role}</div>
+                    </div>
+                    <div style={{ ...s.statusDot, background: '#10b981' }} title="Çevrimiçi" />
                 </div>
 
-                <div style={{ padding: '12px', flex: 1 }}>
-                    <div style={{ fontSize: 9, color: '#64748b', letterSpacing: 1.5, textTransform: 'uppercase', padding: '8px 8px 4px' }}>Aktif Modül</div>
-                    <div style={{ background: '#1e2d40', borderLeft: '2px solid #f59e0b', color: '#f59e0b', padding: '10px 12px', borderRadius: 8, fontSize: 13, fontWeight: 700 }}>
-                        {roleLabel(user?.role)}
+
+
+                {/* Spacer */}
+                <div style={{ flex: 1 }} />
+
+                {/* Clock widget */}
+                <div style={s.clockWidget}>
+                    <div style={s.clockTime}>
+                        {time.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                    </div>
+                    <div style={s.clockDate}>
+                        {time.toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' })}
                     </div>
                 </div>
 
-                <button onClick={handleLogout} style={{ margin: 16, background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', padding: '8px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontFamily: 'monospace' }}>
-                    Çıkış Yap
+                {/* Logout */}
+                <button
+                    id="logout-btn"
+                    onClick={handleLogout}
+                    style={s.logoutBtn}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                >
+                    <span>↩</span> Çıkış Yap
                 </button>
-            </div>
+            </aside>
 
-            {/* Main Content */}
-            <div style={{ flex: 1, overflow: 'auto' }}>
+            {/* ── Main Content + Theme Toggle ───────── */}
+            <main style={s.main} className="animate-fade-in">
+                {/* Theme toggle — top right */}
+                <div style={s.topBar}>
+                    <button
+                        id="theme-toggle"
+                        onClick={toggle}
+                        title={isDark ? 'Açık Temaya Geç' : 'Koyu Temaya Geç'}
+                        style={s.themeBtn}
+                        onMouseEnter={e => {
+                            e.currentTarget.style.background = 'var(--surface-2)';
+                            e.currentTarget.style.borderColor = 'var(--accent)';
+                            e.currentTarget.style.transform = 'rotate(20deg) scale(1.1)';
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.background = 'var(--surface)';
+                            e.currentTarget.style.borderColor = 'var(--border)';
+                            e.currentTarget.style.transform = 'rotate(0deg) scale(1)';
+                        }}
+                    >
+                        <span style={{ fontSize: 18, lineHeight: 1, transition: 'transform 0.3s ease' }}>
+                            {isDark ? '☀️' : '🌙'}
+                        </span>
+                    </button>
+                </div>
                 {renderDashboard()}
-            </div>
+            </main>
         </div>
     );
 }
 
-function roleLabel(role) {
-    const map = {
-        Admin: '⬡ Sistem Yönetimi',
-        OperationsManager: '📋 Operasyon',
-        Driver: '🚛 Sürücü Paneli',
-        Customer: '📦 Kargo Takip',
-        MaintenanceTechnician: '🛠️ Teknik Servis',
-        FinanceSpecialist: '💳 Muhasebe',
-    };
-    return map[role] || role;
-}
+const s = {
+    layout: {
+        display: 'flex',
+        height: '100vh',
+        background: 'var(--bg)',
+        fontFamily: 'var(--font-sans)',
+        overflow: 'hidden',
+    },
+    sidebar: {
+        width: 240,
+        flexShrink: 0,
+        background: 'var(--surface)',
+        borderRight: '1px solid var(--border)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+    },
+    brand: {
+        display: 'flex', alignItems: 'center', gap: 12,
+        padding: '20px 20px',
+        borderBottom: '1px solid var(--border)',
+    },
+    brandLogo: {
+        width: 36, height: 36,
+        background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+        borderRadius: 10,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 18, fontWeight: 900, color: '#000',
+        boxShadow: '0 0 12px rgba(245,158,11,0.3)',
+        flexShrink: 0,
+    },
+    brandName: {
+        fontSize: 15, fontWeight: 800, color: 'var(--text-primary)',
+        letterSpacing: '-0.3px',
+    },
+    brandTag: {
+        fontSize: 9, color: 'var(--text-muted)',
+        letterSpacing: 2, fontFamily: 'var(--font-mono)',
+    },
+    userCard: {
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '14px 16px',
+        margin: '12px',
+        background: 'var(--surface-2)',
+        borderRadius: 'var(--radius-md)',
+        border: '1px solid var(--border)',
+    },
+    avatar: {
+        width: 36, height: 36, borderRadius: '50%',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 13, fontWeight: 800, color: '#fff',
+        flexShrink: 0,
+    },
+    userName: {
+        fontSize: 13, fontWeight: 600, color: 'var(--text-primary)',
+        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+    },
+    userRole: {
+        fontSize: 9, fontWeight: 700, letterSpacing: 0.8,
+        fontFamily: 'var(--font-mono)',
+        marginTop: 2,
+    },
+    statusDot: {
+        width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
+        boxShadow: '0 0 6px #10b981',
+    },
+    clockWidget: {
+        margin: '0 12px 12px',
+        padding: '12px 14px',
+        background: 'var(--surface-2)',
+        borderRadius: 'var(--radius-md)',
+        border: '1px solid var(--border)',
+        textAlign: 'center',
+    },
+    clockTime: {
+        fontSize: 18, fontWeight: 700,
+        fontFamily: 'var(--font-mono)',
+        color: 'var(--text-primary)',
+        letterSpacing: 1,
+    },
+    clockDate: {
+        fontSize: 10, color: 'var(--text-muted)',
+        marginTop: 3, textTransform: 'capitalize',
+    },
+    logoutBtn: {
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        margin: '0 12px 16px',
+        padding: '9px',
+        background: 'transparent',
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-md)',
+        color: 'var(--text-muted)',
+        fontSize: 13, fontWeight: 500,
+        cursor: 'pointer',
+        fontFamily: 'var(--font-sans)',
+        transition: 'var(--transition)',
+    },
+    main: {
+        flex: 1,
+        overflow: 'auto',
+        background: 'var(--bg)',
+        position: 'relative',
+    },
+    topBar: {
+        display: 'flex',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        padding: '10px 20px 0',
+        pointerEvents: 'none',
+        position: 'sticky',
+        top: 0,
+        zIndex: 50,
+    },
+    themeBtn: {
+        width: 38, height: 38,
+        borderRadius: '50%',
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: 'pointer',
+        transition: 'background 0.2s, border-color 0.2s, transform 0.3s',
+        boxShadow: 'var(--shadow-sm)',
+        pointerEvents: 'all',
+        flexShrink: 0,
+    },
+};

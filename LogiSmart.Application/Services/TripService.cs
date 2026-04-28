@@ -1,4 +1,4 @@
-﻿using LogiSmart.Application.DTOs;
+using LogiSmart.Application.DTOs;
 using LogiSmart.Core.Entities;
 using LogiSmart.Core.Enums;
 using LogiSmart.Core.Interfaces;
@@ -40,6 +40,7 @@ public class TripService
             VehicleId = dto.VehicleId,
             DriverId = dto.DriverId,
             CustomerId = dto.CustomerId,
+            OperationsManagerId = dto.OperationsManagerId,
             Status = TripStatus.Planned
         };
 

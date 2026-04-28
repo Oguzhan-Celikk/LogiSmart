@@ -1,4 +1,4 @@
-﻿namespace LogiSmart.Application.DTOs;
+namespace LogiSmart.Application.DTOs;
 
 public record CreateTripDto(
     string Origin,
@@ -9,7 +9,8 @@ public record CreateTripDto(
     decimal EstimatedDistanceKm,
     int VehicleId,
     int DriverId,
-    int CustomerId
+    int CustomerId,
+    int OperationsManagerId
 );
 
 public record TripResponseDto(
