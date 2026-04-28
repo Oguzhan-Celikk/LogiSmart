@@ -1,4 +1,4 @@
-﻿using LogiSmart.Core.Entities;
+using LogiSmart.Core.Entities;
 using LogiSmart.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -31,19 +31,29 @@ public class MaintenanceController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> LogMaintenance([FromBody] MaintenanceLog log)
     {
+        log.ReportedDate = DateTime.UtcNow;
         await _uow.MaintenanceLogs.AddAsync(log);
+
+        var vehicle = await _uow.Vehicles.GetByIdAsync(log.VehicleId);
+        if (vehicle != null)
+        {
+            vehicle.Status = Core.Enums.VehicleStatus.UnderMaintenance;
+            _uow.Vehicles.Update(vehicle);
+        }
+
         await _uow.SaveChangesAsync();
         return Created("", log);
     }
 
     [HttpPatch("{id:int}/resolve")]
-    public async Task<IActionResult> ResolveIssue(int id, [FromBody] string resolutionNotes)
+    public async Task<IActionResult> ResolveIssue(int id, [FromBody] ResolveMaintenanceDto dto)
     {
         var log = await _uow.MaintenanceLogs.GetByIdAsync(id);
         if (log == null) return NotFound();
 
         log.IsResolved = true;
-        log.ResolutionNotes = resolutionNotes;
+        log.ResolutionNotes = dto.ResolutionNotes;
+        log.RepairCost = dto.RepairCost;
         log.ResolvedDate = DateTime.UtcNow;
         _uow.MaintenanceLogs.Update(log);
 
@@ -59,4 +69,10 @@ public class MaintenanceController : ControllerBase
         await _uow.SaveChangesAsync();
         return Ok(new { message = "Issue resolved, vehicle restored to available." });
     }
+}
+
+public class ResolveMaintenanceDto
+{
+    public string ResolutionNotes { get; set; } = string.Empty;
+    public decimal RepairCost { get; set; }
 }

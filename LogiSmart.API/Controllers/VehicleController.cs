@@ -1,4 +1,4 @@
-﻿using LogiSmart.Application.DTOs;
+using LogiSmart.Application.DTOs;
 using LogiSmart.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +15,7 @@ public class VehicleController : ControllerBase
     public VehicleController(VehicleService vehicleService) => _vehicleService = vehicleService;
 
     [HttpGet("available")]
-    [Authorize(Roles = "OperationsManager,Admin")]
+    [Authorize(Roles = "OperationsManager,Admin,MaintenanceTechnician")]
     public async Task<IActionResult> GetAvailable()
     {
         var vehicles = await _vehicleService.GetAvailableVehiclesAsync();

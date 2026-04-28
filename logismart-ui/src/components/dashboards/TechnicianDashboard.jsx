@@ -1,28 +1,82 @@
 import { useEffect, useState } from 'react';
 import api from '../../api/axios';
 import { StatCard, StatRow, Badge, PageHeader } from '../UI';
+import { useAuth } from '../../context/AuthContext';
 
 export default function TechnicianDashboard() {
+    const { user } = useAuth();
     const [logs, setLogs] = useState([]);
+    const [vehicles, setVehicles] = useState([]);
+
+    const [showAdd, setShowAdd] = useState(false);
+    const [newLog, setNewLog] = useState({ vehicleId: '', issueDescription: '' });
+
+    const [resolvingId, setResolvingId] = useState(null);
+    const [resolutionData, setResolutionData] = useState({ resolutionNotes: '', repairCost: '' });
 
     const fetchLogs = () => api.get('/maintenance').then(r => setLogs(r.data)).catch(() => {});
-    useEffect(() => { fetchLogs(); }, []);
+    const fetchVehicles = () => api.get('/vehicle/available').then(r => setVehicles(r.data)).catch(() => {});
 
-    const resolve = async (id) => {
+    useEffect(() => { 
+        fetchLogs(); 
+        fetchVehicles();
+    }, []);
+
+    const handleAddSubmit = async (e) => {
+        e.preventDefault();
         try {
-            await api.patch(`/maintenance/${id}/resolve`, JSON.stringify('Sorun çözüldü, araç servise hazır.'), {
-                headers: { 'Content-Type': 'application/json' }
+            await api.post('/maintenance', {
+                vehicleId: parseInt(newLog.vehicleId),
+                issueDescription: newLog.issueDescription,
+                technicianId: user.id
             });
+            setShowAdd(false);
+            setNewLog({ vehicleId: '', issueDescription: '' });
             fetchLogs();
-        } catch { alert('İşlem başarısız.'); }
+            fetchVehicles();
+        } catch {
+            alert('Arıza eklenemedi.');
+        }
+    };
+
+    const handleResolveSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await api.patch(`/maintenance/${resolvingId}/resolve`, {
+                resolutionNotes: resolutionData.resolutionNotes,
+                repairCost: parseFloat(resolutionData.repairCost) || 0
+            });
+            setResolvingId(null);
+            setResolutionData({ resolutionNotes: '', repairCost: '' });
+            fetchLogs();
+            fetchVehicles();
+        } catch { 
+            alert('İşlem başarısız.'); 
+        }
     };
 
     const open     = logs.filter(l => !l.isResolved);
     const resolved = logs.filter(l => l.isResolved);
 
     return (
-        <div style={{ padding: '0 0 32px', height: '100%', overflowY: 'auto' }}>
-            <PageHeader title="Teknik Servis" sub="Araç bakım ve arıza yönetimi" breadcrumb="Teknik Servis" />
+        <div style={{ padding: '0 0 32px', height: '100%', overflowY: 'auto', position: 'relative' }}>
+            <PageHeader 
+                title="Teknik Servis" 
+                sub="Araç bakım ve arıza yönetimi" 
+                breadcrumb="Teknik Servis" 
+                action={
+                    <button 
+                        onClick={() => setShowAdd(true)}
+                        style={{
+                            background: 'var(--accent)', border: 'none', color: '#fff',
+                            padding: '8px 16px', borderRadius: 'var(--radius-md)',
+                            fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                        }}
+                    >
+                        + Arıza Ekle
+                    </button>
+                }
+            />
 
             <StatRow>
                 <StatCard label="Açık Arıza"   value={open.length}     color="var(--red)"   icon="⚡" />
@@ -74,7 +128,7 @@ export default function TechnicianDashboard() {
                                 <Badge status={m.isResolved ? 'Resolved' : 'Open'} />
                                 {!m.isResolved && (
                                     <button
-                                        onClick={() => resolve(m.id)}
+                                        onClick={() => setResolvingId(m.id)}
                                         style={{
                                             background: 'linear-gradient(135deg, #10b981, #059669)',
                                             border: 'none', color: '#fff',
@@ -94,6 +148,112 @@ export default function TechnicianDashboard() {
                     </div>
                 ))}
             </div>
+
+            {/* Modals */}
+            {showAdd && (
+                <div style={modalOverlayStyle}>
+                    <div style={modalContentStyle}>
+                        <h3 style={{ marginTop: 0, color: 'var(--text-primary)' }}>Yeni Arıza Kaydı</h3>
+                        <form onSubmit={handleAddSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                            <div>
+                                <label style={labelStyle}>Araç Seçimi</label>
+                                <select 
+                                    style={inputStyle} 
+                                    value={newLog.vehicleId} 
+                                    onChange={e => setNewLog({ ...newLog, vehicleId: e.target.value })} 
+                                    required
+                                >
+                                    <option value="">Araç Seçiniz...</option>
+                                    {vehicles.map(v => (
+                                        <option key={v.id} value={v.id}>{v.plateNumber} - {v.brand} {v.model}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label style={labelStyle}>Arıza Açıklaması</label>
+                                <input 
+                                    style={inputStyle}
+                                    value={newLog.issueDescription} 
+                                    onChange={e => setNewLog({ ...newLog, issueDescription: e.target.value })} 
+                                    placeholder="Arıza detaylarını yazın..." 
+                                    required 
+                                />
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
+                                <button type="button" onClick={() => setShowAdd(false)} style={btnSecondaryStyle}>İptal</button>
+                                <button type="submit" style={btnPrimaryStyle}>Kaydet</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {resolvingId && (
+                <div style={modalOverlayStyle}>
+                    <div style={modalContentStyle}>
+                        <h3 style={{ marginTop: 0, color: 'var(--text-primary)' }}>Arıza Çözümü</h3>
+                        <form onSubmit={handleResolveSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                            <div>
+                                <label style={labelStyle}>Yapılan İşlemler / Notlar</label>
+                                <input 
+                                    style={inputStyle}
+                                    value={resolutionData.resolutionNotes} 
+                                    onChange={e => setResolutionData({ ...resolutionData, resolutionNotes: e.target.value })} 
+                                    placeholder="Değişen parçalar, onarım detayları vb." 
+                                    required 
+                                />
+                            </div>
+                            <div>
+                                <label style={labelStyle}>Onarım Maliyeti (₺)</label>
+                                <input 
+                                    style={inputStyle}
+                                    type="number" 
+                                    step="0.01"
+                                    min="0"
+                                    value={resolutionData.repairCost} 
+                                    onChange={e => setResolutionData({ ...resolutionData, repairCost: e.target.value })} 
+                                    placeholder="0.00" 
+                                    required 
+                                />
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
+                                <button type="button" onClick={() => setResolvingId(null)} style={btnSecondaryStyle}>İptal</button>
+                                <button type="submit" style={{...btnPrimaryStyle, background: 'var(--green)'}}>Çözüldü İşaretle</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
+
+const modalOverlayStyle = {
+    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+    background: 'rgba(0,0,0,0.5)', zIndex: 100,
+    display: 'flex', alignItems: 'center', justifyContent: 'center'
+};
+const modalContentStyle = {
+    background: 'var(--surface)', padding: 24, borderRadius: 'var(--radius-lg)',
+    width: '100%', maxWidth: 400, border: '1px solid var(--border)',
+    boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
+};
+const labelStyle = {
+    display: 'block', fontSize: 12, fontWeight: 700,
+    color: 'var(--text-secondary)', marginBottom: 6
+};
+const inputStyle = {
+    width: '100%', padding: '10px 12px', borderRadius: 'var(--radius-md)',
+    border: '1px solid var(--border)', background: 'var(--bg)',
+    color: 'var(--text-primary)', fontSize: 14, outline: 'none', boxSizing: 'border-box'
+};
+const btnPrimaryStyle = {
+    background: 'var(--accent)', color: '#fff', border: 'none',
+    padding: '8px 16px', borderRadius: 'var(--radius-md)',
+    fontSize: 13, fontWeight: 700, cursor: 'pointer'
+};
+const btnSecondaryStyle = {
+    background: 'var(--surface-2)', color: 'var(--text-primary)', border: '1px solid var(--border)',
+    padding: '8px 16px', borderRadius: 'var(--radius-md)',
+    fontSize: 13, fontWeight: 700, cursor: 'pointer'
+};
