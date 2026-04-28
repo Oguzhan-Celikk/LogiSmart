@@ -82,38 +82,40 @@ public class TripService
 
     public async Task<IEnumerable<TripResponseDto>> GetAllTripsAsync()
     {
-        var trips = await _uow.Trips.GetAllAsync();
+        var trips = await _uow.Trips.GetAllWithIncludesAsync(t => t.Driver, t => t.Vehicle, t => t.Customer);
         // Note: In production use Include() via a custom repo method for navigation props
         return trips.Select(t => new TripResponseDto(
             t.Id, t.TripCode, t.Origin, t.Destination,
             t.CargoWeightTons, t.Status.ToString(),
             t.PlannedDepartureDate,
-            $"Driver #{t.DriverId}",
-            $"Vehicle #{t.VehicleId}",
-            $"Customer #{t.CustomerId}"
+            t.Driver != null ? $"{t.Driver.FirstName} {t.Driver.LastName}" : $"Driver #{t.DriverId}",
+            t.Vehicle != null ? t.Vehicle.PlateNumber : $"Vehicle #{t.VehicleId}",
+            t.Customer != null ? $"{t.Customer.FirstName} {t.Customer.LastName}" : $"Customer #{t.CustomerId}"
         ));
     }
 
     public async Task<IEnumerable<TripResponseDto>> GetTripsByDriverAsync(int driverId)
     {
-        var trips = await _uow.Trips.FindAsync(t => t.DriverId == driverId);
+        var trips = await _uow.Trips.FindWithIncludesAsync(t => t.DriverId == driverId, t => t.Vehicle, t => t.Customer);
         return trips.Select(t => new TripResponseDto(
             t.Id, t.TripCode, t.Origin, t.Destination,
             t.CargoWeightTons, t.Status.ToString(),
-            t.PlannedDepartureDate, "You", $"Vehicle #{t.VehicleId}", $"Customer #{t.CustomerId}"
+            t.PlannedDepartureDate, "You", 
+            t.Vehicle != null ? t.Vehicle.PlateNumber : $"Vehicle #{t.VehicleId}", 
+            t.Customer != null ? $"{t.Customer.FirstName} {t.Customer.LastName}" : $"Customer #{t.CustomerId}"
         ));
     }
     
     public async Task<IEnumerable<TripResponseDto>> GetTripsByCustomerAsync(int customerId)
     {
-        var trips = await _uow.Trips.FindAsync(t => t.CustomerId == customerId);
+        var trips = await _uow.Trips.FindWithIncludesAsync(t => t.CustomerId == customerId, t => t.Driver, t => t.Vehicle);
         return trips.Select(t => new TripResponseDto(
             t.Id, t.TripCode, t.Origin, t.Destination,
             t.CargoWeightTons, t.Status.ToString(),
             t.PlannedDepartureDate,
-            $"Driver #{t.DriverId}",
-            $"Vehicle #{t.VehicleId}",
-            $"Customer #{t.CustomerId}"
+            t.Driver != null ? $"{t.Driver.FirstName} {t.Driver.LastName}" : $"Driver #{t.DriverId}",
+            t.Vehicle != null ? t.Vehicle.PlateNumber : $"Vehicle #{t.VehicleId}",
+            "You"
         ));
     }
 }

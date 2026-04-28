@@ -11,7 +11,7 @@ export default function FinanceDashboard() {
 
     const markPaid = async (id) => {
         try { await api.patch(`/invoice/${id}/mark-paid`); fetchInvoices(); }
-        catch { alert('İşlem başarısız.'); }
+        catch { alert('Operation failed.'); }
     };
 
     const total  = invoices.reduce((a, b) => a + (b.totalAmount || 0), 0);
@@ -42,21 +42,21 @@ export default function FinanceDashboard() {
 
     return (
         <div style={{ padding: '0 0 32px', height: '100%', overflowY: 'auto' }}>
-            <PageHeader title="Finans Paneli" sub="Fatura ve ödeme yönetimi" breadcrumb="Muhasebe" />
+            <PageHeader title="Finance Dashboard" sub="Invoice and payment management" breadcrumb="Accounting" />
 
             <div style={{ display: 'flex', gap: 16, padding: '0 28px 24px', flexWrap: 'wrap' }}>
-                <SummaryCard label="Toplam Ciro"    value={`₺${total.toLocaleString('tr-TR')}`}  color="var(--blue)"   icon="💰" />
-                <SummaryCard label="Tahsil Edilen"  value={`₺${paid.toLocaleString('tr-TR')}`}   color="var(--green)"  icon="✅" />
-                <SummaryCard label="Bekleyen"       value={`₺${unpaid.toLocaleString('tr-TR')}`} color="var(--red)"    icon="⏳" />
-                <SummaryCard label="Fatura Sayısı"  value={invoices.length}                       color="var(--purple)" icon="🧾" />
+                <SummaryCard label="Total Revenue"    value={`$${total.toLocaleString('en-US')}`}  color="var(--blue)"   icon="💰" />
+                <SummaryCard label="Collected"  value={`$${paid.toLocaleString('en-US')}`}   color="var(--green)"  icon="✅" />
+                <SummaryCard label="Pending"       value={`$${unpaid.toLocaleString('en-US')}`} color="var(--red)"    icon="⏳" />
+                <SummaryCard label="Total Invoices"  value={invoices.length}                       color="var(--purple)" icon="🧾" />
             </div>
 
             <div style={{ margin: '0 28px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
-                <div style={{ padding: '13px 20px', borderBottom: '1px solid var(--border)', fontSize: 13, fontWeight: 700 }}>Faturalar</div>
+                <div style={{ padding: '13px 20px', borderBottom: '1px solid var(--border)', fontSize: 13, fontWeight: 700 }}>Invoices</div>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                         <tr style={{ background: 'var(--surface-2)' }}>
-                            {['Fatura No', 'Sefer', 'Yakıt', 'Harcırah', 'Servis', 'Toplam', 'Durum', 'İşlem'].map(h => (
+                            {['Invoice No', 'Trip', 'Fuel', 'Allowance', 'Service', 'Total', 'Status', 'Action'].map(h => (
                                 <th key={h} style={{ padding: '11px 14px', textAlign: 'left', fontSize: 11, color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8, fontFamily: 'var(--font-mono)', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap' }}>{h}</th>
                             ))}
                         </tr>
@@ -71,11 +71,11 @@ export default function FinanceDashboard() {
                                     onMouseLeave={e => e.currentTarget.style.background = baseBg}
                                 >
                                 <td style={{ padding: '12px 14px', fontSize: 11, color: 'var(--accent)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>{inv.invoiceNumber}</td>
-                                <td style={{ padding: '12px 14px', fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>#{inv.tripId}</td>
-                                <td style={{ padding: '12px 14px', fontSize: 12 }}>₺{inv.fuelCost?.toLocaleString('tr-TR')}</td>
-                                <td style={{ padding: '12px 14px', fontSize: 12 }}>₺{inv.driverAllowance?.toLocaleString('tr-TR')}</td>
-                                <td style={{ padding: '12px 14px', fontSize: 12 }}>₺{inv.serviceFee?.toLocaleString('tr-TR')}</td>
-                                <td style={{ padding: '12px 14px', fontSize: 13, fontWeight: 800, color: 'var(--text-primary)' }}>₺{inv.totalAmount?.toLocaleString('tr-TR')}</td>
+                                <td style={{ padding: '12px 14px', fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>{inv.tripCode || `#${inv.tripId}`}</td>
+                                <td style={{ padding: '12px 14px', fontSize: 12 }}>${inv.fuelCost?.toLocaleString('en-US')}</td>
+                                <td style={{ padding: '12px 14px', fontSize: 12 }}>${inv.driverAllowance?.toLocaleString('en-US')}</td>
+                                <td style={{ padding: '12px 14px', fontSize: 12 }}>${inv.serviceFee?.toLocaleString('en-US')}</td>
+                                <td style={{ padding: '12px 14px', fontSize: 13, fontWeight: 800, color: 'var(--text-primary)' }}>${inv.totalAmount?.toLocaleString('en-US')}</td>
                                 <td style={{ padding: '12px 14px' }}><Badge status={inv.isPaid ? 'Paid' : 'Unpaid'} /></td>
                                 <td style={{ padding: '12px 14px' }}>
                                     {!inv.isPaid && (
@@ -84,7 +84,7 @@ export default function FinanceDashboard() {
                                             style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.4)', color: 'var(--green)', padding: '4px 12px', borderRadius: 'var(--radius-sm)', fontSize: 11, cursor: 'pointer', fontFamily: 'var(--font-sans)', fontWeight: 600, transition: 'var(--transition)' }}
                                             onMouseEnter={e => e.currentTarget.style.background = 'rgba(16,185,129,0.2)'}
                                             onMouseLeave={e => e.currentTarget.style.background = 'rgba(16,185,129,0.1)'}
-                                        >Ödendi ✓</button>
+                                        >Paid ✓</button>
                                     )}
                                 </td>
                                 </tr>

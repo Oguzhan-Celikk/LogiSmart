@@ -44,20 +44,20 @@ export default function AdminDashboard() {
     const handleSubmitUser = async () => {
         setUserError(''); setUserSuccess('');
         if (!userForm.firstName || !userForm.lastName || !userForm.email || !userForm.password || !userForm.role) {
-            setUserError('Lütfen zorunlu (*) alanları doldurun.');
+            setUserError('Please fill in the required (*) fields.');
             return;
         }
         setSubmittingUser(true);
         try {
             await api.post('/auth/register', userForm);
-            setUserSuccess('Kullanıcı başarıyla oluşturuldu.');
+            setUserSuccess('User created successfully.');
             setTimeout(() => {
                 setShowUserModal(false);
                 setUserForm(emptyUserForm);
                 setUserSuccess('');
             }, 1500);
         } catch (e) {
-            setUserError(e.response?.data?.message || 'Kullanıcı oluşturulamadı.');
+            setUserError(e.response?.data?.message || 'Failed to create user.');
         } finally {
             setSubmittingUser(false);
         }
@@ -79,36 +79,36 @@ export default function AdminDashboard() {
             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(16,185,129,0.4)'; }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
         >
-            + Yeni Kullanıcı
+            + New User
         </button>
     );
 
     return (
         <div style={{ padding: '0 0 32px', height: '100%', overflowY: 'auto' }}>
             <PageHeader
-                title="Admin Paneli"
-                sub="Tüm sistem verilerine genel bakış"
-                breadcrumb="Sistem Yönetimi"
+                title="Admin Dashboard"
+                sub="Overview of all system data"
+                breadcrumb="System Management"
                 action={createUserBtn}
             />
 
             <StatRow>
-                <StatCard label="Toplam Sefer"     value={trips.length}                            color="var(--blue)"   icon="🚛" />
-                <StatCard label="Müsait Araç"      value={vehicles.length}                         color="var(--green)"  icon="🚘" />
-                <StatCard label="Açık Bakım"       value={maintenance.filter(m => !m.isResolved).length} color="var(--orange)" icon="🛠" />
-                <StatCard label="Ödenmemiş Fatura" value={invoices.filter(i => !i.isPaid).length}  color="var(--red)"    icon="💳" />
+                <StatCard label="Total Trips"     value={trips.length}                            color="var(--blue)"   icon="🚛" />
+                <StatCard label="Available Vehicles"      value={vehicles.length}                         color="var(--green)"  icon="🚘" />
+                <StatCard label="Open Maintenance"       value={maintenance.filter(m => !m.isResolved).length} color="var(--orange)" icon="🛠" />
+                <StatCard label="Unpaid Invoices" value={invoices.filter(i => !i.isPaid).length}  color="var(--red)"    icon="💳" />
             </StatRow>
 
             <Tabs
                 tabs={['trips', 'vehicles', 'maintenance', 'invoices']}
-                labels={['Seferler', 'Araçlar', 'Bakım', 'Faturalar']}
+                labels={['Trips', 'Vehicles', 'Maintenance', 'Invoices']}
                 active={tab}
                 onChange={setTab}
             />
 
             {tab === 'trips' && (
                 <Table
-                    headers={['Kod', 'Güzergah', 'Sürücü', 'Araç', 'Durum']}
+                    headers={['Code', 'Route', 'Driver', 'Vehicle', 'Status']}
                     rows={trips.map(t => [
                         <span style={{ color: 'var(--accent)', fontWeight: 700 }}>{t.tripCode}</span>,
                         `${t.origin} → ${t.destination}`,
@@ -120,7 +120,7 @@ export default function AdminDashboard() {
             )}
             {tab === 'vehicles' && (
                 <Table
-                    headers={['Plaka', 'Marka', 'Model', 'Kapasite', 'Durum']}
+                    headers={['Plate', 'Brand', 'Model', 'Capacity', 'Status']}
                     rows={vehicles.map(v => [
                         <span style={{ color: 'var(--accent)', fontWeight: 700 }}>{v.plateNumber}</span>,
                         v.brand, v.model, `${v.maxLoadCapacityTons}t`,
@@ -130,22 +130,22 @@ export default function AdminDashboard() {
             )}
             {tab === 'maintenance' && (
                 <Table
-                    headers={['Sorun', 'Araç', 'Teknisyen', 'Durum']}
+                    headers={['Issue', 'Vehicle', 'Technician', 'Status']}
                     rows={maintenance.map(m => [
                         m.issueDescription,
-                        `Araç #${m.vehicleId}`,
-                        `Teknisyen #${m.technicianId}`,
+                        m.vehiclePlate || `Vehicle #${m.vehicleId}`,
+                        m.technicianName || `Technician #${m.technicianId}`,
                         <Badge status={m.isResolved ? 'Resolved' : 'Open'} />,
                     ])}
                 />
             )}
             {tab === 'invoices' && (
                 <Table
-                    headers={['Fatura No', 'Sefer', 'Toplam', 'Durum']}
+                    headers={['Invoice No', 'Trip', 'Total', 'Status']}
                     rows={invoices.map(i => [
                         <span style={{ color: 'var(--accent)', fontWeight: 700 }}>{i.invoiceNumber}</span>,
-                        `Sefer #${i.tripId}`,
-                        `₺${i.totalAmount?.toLocaleString('tr-TR')}`,
+                        i.tripCode || `Trip #${i.tripId}`,
+                        `$${i.totalAmount?.toLocaleString('en-US')}`,
                         <Badge status={i.isPaid ? 'Paid' : 'Unpaid'} />,
                     ])}
                 />
@@ -167,8 +167,8 @@ export default function AdminDashboard() {
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                             <div>
-                                <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-primary)' }}>Yeni Kullanıcı Ekle</div>
-                                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 3 }}>Zorunlu alanlar (*) ile işaretlidir</div>
+                                <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-primary)' }}>Add New User</div>
+                                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 3 }}>Required fields are marked with (*)</div>
                             </div>
                             <button onClick={closeUserModal} disabled={submittingUser} style={{
                                 background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-muted)',
@@ -194,8 +194,8 @@ export default function AdminDashboard() {
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                             {[
-                                { name: 'firstName', label: 'Ad *', type: 'text', placeholder: 'Ahmet' },
-                                { name: 'lastName',  label: 'Soyad *', type: 'text', placeholder: 'Yılmaz' },
+                                { name: 'firstName', label: 'First Name *', type: 'text', placeholder: 'John' },
+                                { name: 'lastName',  label: 'Last Name *', type: 'text', placeholder: 'Doe' },
                             ].map(f => (
                                 <div key={f.name} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                                     <label style={labelStyle}>{f.label}</label>
@@ -209,7 +209,7 @@ export default function AdminDashboard() {
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 14 }}>
-                            <label style={labelStyle}>E-posta *</label>
+                            <label style={labelStyle}>Email *</label>
                             <input
                                 name="email" type="email" value={userForm.email} onChange={handleUserChange} placeholder="kullanici@logismart.com" style={inputStyle}
                                 onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 3px var(--accent-dim)'; e.target.style.background = 'var(--surface)'; }}
@@ -218,7 +218,7 @@ export default function AdminDashboard() {
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 14 }}>
-                            <label style={labelStyle}>Geçici Şifre *</label>
+                            <label style={labelStyle}>Temporary Password *</label>
                             <input
                                 name="password" type="password" value={userForm.password} onChange={handleUserChange} placeholder="••••••••" style={inputStyle}
                                 onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 3px var(--accent-dim)'; e.target.style.background = 'var(--surface)'; }}
@@ -227,13 +227,13 @@ export default function AdminDashboard() {
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 14 }}>
-                            <label style={labelStyle}>Rol *</label>
+                            <label style={labelStyle}>Role *</label>
                             <select
                                 name="role" value={userForm.role} onChange={handleUserChange} style={inputStyle}
                                 onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 3px var(--accent-dim)'; e.target.style.background = 'var(--surface)'; }}
                                 onBlur={e =>  { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; e.target.style.background = 'var(--surface-2)'; }}
                             >
-                                <option value="">Rol Seçin...</option>
+                                <option value="">Select Role...</option>
                                 <option value="Admin">Admin</option>
                                 <option value="OperationsManager">Operations Manager</option>
                                 <option value="Driver">Driver</option>
@@ -245,8 +245,8 @@ export default function AdminDashboard() {
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginTop: 14 }}>
                             {[
-                                { name: 'department', label: 'Departman (Opsiyonel)', type: 'text', placeholder: 'Örn: Lojistik' },
-                                { name: 'phoneNumber', label: 'Telefon (Opsiyonel)', type: 'text', placeholder: '555 123 4567' },
+                                { name: 'department', label: 'Department (Optional)', type: 'text', placeholder: 'e.g. Logistics' },
+                                { name: 'phoneNumber', label: 'Phone (Optional)', type: 'text', placeholder: '555 123 4567' },
                             ].map(f => (
                                 <div key={f.name} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                                     <label style={labelStyle}>{f.label}</label>
@@ -265,7 +265,7 @@ export default function AdminDashboard() {
                                 padding: '10px 22px', borderRadius: 8, cursor: submittingUser ? 'not-allowed' : 'pointer',
                                 fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 500, transition: 'background 0.15s',
                             }} onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-3)'} onMouseLeave={e => e.currentTarget.style.background = 'var(--surface-2)'}>
-                                İptal
+                                Cancel
                             </button>
                             <button onClick={handleSubmitUser} disabled={submittingUser || !!userSuccess} style={{
                                 background: submittingUser || !!userSuccess ? 'var(--surface-3)' : 'var(--green)',
@@ -273,7 +273,7 @@ export default function AdminDashboard() {
                                 cursor: submittingUser || !!userSuccess ? 'not-allowed' : 'pointer', fontWeight: 700, fontFamily: 'var(--font-sans)', fontSize: 13,
                                 opacity: submittingUser ? 0.7 : 1, transition: 'filter 0.15s, box-shadow 0.15s',
                             }} onMouseEnter={e => { if (!submittingUser && !userSuccess) { e.currentTarget.style.filter = 'brightness(1.08)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)'; }}} onMouseLeave={e => { e.currentTarget.style.filter = 'none'; e.currentTarget.style.boxShadow = 'none'; }}>
-                                {submittingUser ? 'Oluşturuluyor...' : userSuccess ? '✓ Oluşturuldu' : '+ Kullanıcıyı Kaydet'}
+                                {submittingUser ? 'Creating...' : userSuccess ? '✓ Created' : '+ Save User'}
                             </button>
                         </div>
                     </div>

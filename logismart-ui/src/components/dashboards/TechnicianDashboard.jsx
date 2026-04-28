@@ -35,7 +35,7 @@ export default function TechnicianDashboard() {
             fetchLogs();
             fetchVehicles();
         } catch {
-            alert('Arıza eklenemedi.');
+            alert('Failed to add breakdown.');
         }
     };
 
@@ -51,7 +51,7 @@ export default function TechnicianDashboard() {
             fetchLogs();
             fetchVehicles();
         } catch { 
-            alert('İşlem başarısız.'); 
+            alert('Operation failed.'); 
         }
     };
 
@@ -61,9 +61,9 @@ export default function TechnicianDashboard() {
     return (
         <div style={{ padding: '0 0 32px', height: '100%', overflowY: 'auto', position: 'relative' }}>
             <PageHeader 
-                title="Teknik Servis" 
-                sub="Araç bakım ve arıza yönetimi" 
-                breadcrumb="Teknik Servis" 
+                title="Technical Service" 
+                sub="Vehicle maintenance and breakdown management" 
+                breadcrumb="Technical Service" 
                 action={
                     <button 
                         onClick={() => setShowAdd(true)}
@@ -73,22 +73,22 @@ export default function TechnicianDashboard() {
                             fontSize: 13, fontWeight: 700, cursor: 'pointer',
                         }}
                     >
-                        + Arıza Ekle
+                        + Add Breakdown
                     </button>
                 }
             />
 
             <StatRow>
-                <StatCard label="Açık Arıza"   value={open.length}     color="var(--red)"   icon="⚡" />
-                <StatCard label="Çözülen"       value={resolved.length} color="var(--green)" icon="✅" />
-                <StatCard label="Toplam Kayıt"  value={logs.length}     color="var(--blue)"  icon="📋" />
+                <StatCard label="Open Breakdown"   value={open.length}     color="var(--red)"   icon="⚡" />
+                <StatCard label="Resolved"       value={resolved.length} color="var(--green)" icon="✅" />
+                <StatCard label="Total Records"  value={logs.length}     color="var(--blue)"  icon="📋" />
             </StatRow>
 
             <div style={{ padding: '0 28px', display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {logs.length === 0 && (
                     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 48, textAlign: 'center', color: 'var(--text-muted)' }}>
                         <div style={{ fontSize: 32, marginBottom: 8 }}>🛠️</div>
-                        Henüz bakım kaydı yok.
+                        No maintenance records yet.
                     </div>
                 )}
                 {logs.map(m => (
@@ -110,12 +110,12 @@ export default function TechnicianDashboard() {
                                 <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 6, color: 'var(--text-primary)' }}>
                                     {m.issueDescription}
                                 </div>
-                                <div style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', gap: 16, flexWrap: 'wrap', fontFamily: 'var(--font-mono)' }}>
-                                    <span>Araç #{m.vehicleId}</span>
-                                    <span>Teknisyen #{m.technicianId}</span>
-                                    <span>{new Date(m.reportedDate).toLocaleDateString('tr-TR')}</span>
+                                <div style={{ fontSize: 13, color: 'var(--text-secondary)', display: 'flex', gap: 16 }}>
+                                    <span>{m.vehiclePlate || `Vehicle #${m.vehicleId}`}</span>
+                                    <span>{m.technicianName || `Technician #${m.technicianId}`}</span>
+                                    <span>{new Date(m.reportedDate).toLocaleDateString('en-US')}</span>
                                     {m.repairCost > 0 && (
-                                        <span>Maliyet: <span style={{ color: 'var(--accent)', fontWeight: 700 }}>₺{m.repairCost.toLocaleString('tr-TR')}</span></span>
+                                        <span>Cost: <span style={{ color: 'var(--accent)', fontWeight: 700 }}>${m.repairCost.toLocaleString('en-US')}</span></span>
                                     )}
                                 </div>
                                 {m.resolutionNotes && (
@@ -140,7 +140,7 @@ export default function TechnicianDashboard() {
                                         onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(16,185,129,0.4)'; }}
                                         onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
                                     >
-                                        Çöz ✓
+                                        Resolve ✓
                                     </button>
                                 )}
                             </div>
@@ -153,35 +153,35 @@ export default function TechnicianDashboard() {
             {showAdd && (
                 <div style={modalOverlayStyle}>
                     <div style={modalContentStyle}>
-                        <h3 style={{ marginTop: 0, color: 'var(--text-primary)' }}>Yeni Arıza Kaydı</h3>
+                        <h3 style={{ marginTop: 0, color: 'var(--text-primary)' }}>New Breakdown Record</h3>
                         <form onSubmit={handleAddSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                             <div>
-                                <label style={labelStyle}>Araç Seçimi</label>
+                                <label style={labelStyle}>Select Vehicle</label>
                                 <select 
                                     style={inputStyle} 
                                     value={newLog.vehicleId} 
                                     onChange={e => setNewLog({ ...newLog, vehicleId: e.target.value })} 
                                     required
                                 >
-                                    <option value="">Araç Seçiniz...</option>
+                                    <option value="">Select a vehicle...</option>
                                     {vehicles.map(v => (
                                         <option key={v.id} value={v.id}>{v.plateNumber} - {v.brand} {v.model}</option>
                                     ))}
                                 </select>
                             </div>
                             <div>
-                                <label style={labelStyle}>Arıza Açıklaması</label>
+                                <label style={labelStyle}>Breakdown Description</label>
                                 <input 
                                     style={inputStyle}
                                     value={newLog.issueDescription} 
                                     onChange={e => setNewLog({ ...newLog, issueDescription: e.target.value })} 
-                                    placeholder="Arıza detaylarını yazın..." 
+                                    placeholder="Enter breakdown details..." 
                                     required 
                                 />
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
-                                <button type="button" onClick={() => setShowAdd(false)} style={btnSecondaryStyle}>İptal</button>
-                                <button type="submit" style={btnPrimaryStyle}>Kaydet</button>
+                                <button type="button" onClick={() => setShowAdd(false)} style={btnSecondaryStyle}>Cancel</button>
+                                <button type="submit" style={btnPrimaryStyle}>Save</button>
                             </div>
                         </form>
                     </div>
@@ -191,20 +191,20 @@ export default function TechnicianDashboard() {
             {resolvingId && (
                 <div style={modalOverlayStyle}>
                     <div style={modalContentStyle}>
-                        <h3 style={{ marginTop: 0, color: 'var(--text-primary)' }}>Arıza Çözümü</h3>
+                        <h3 style={{ marginTop: 0, color: 'var(--text-primary)' }}>Resolve Breakdown</h3>
                         <form onSubmit={handleResolveSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                             <div>
-                                <label style={labelStyle}>Yapılan İşlemler / Notlar</label>
+                                <label style={labelStyle}>Actions Taken / Notes</label>
                                 <input 
                                     style={inputStyle}
                                     value={resolutionData.resolutionNotes} 
                                     onChange={e => setResolutionData({ ...resolutionData, resolutionNotes: e.target.value })} 
-                                    placeholder="Değişen parçalar, onarım detayları vb." 
+                                    placeholder="Replaced parts, repair details, etc." 
                                     required 
                                 />
                             </div>
                             <div>
-                                <label style={labelStyle}>Onarım Maliyeti (₺)</label>
+                                <label style={labelStyle}>Repair Cost ($)</label>
                                 <input 
                                     style={inputStyle}
                                     type="number" 
@@ -217,8 +217,8 @@ export default function TechnicianDashboard() {
                                 />
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
-                                <button type="button" onClick={() => setResolvingId(null)} style={btnSecondaryStyle}>İptal</button>
-                                <button type="submit" style={{...btnPrimaryStyle, background: 'var(--green)'}}>Çözüldü İşaretle</button>
+                                <button type="button" onClick={() => setResolvingId(null)} style={btnSecondaryStyle}>Cancel</button>
+                                <button type="submit" style={{...btnPrimaryStyle, background: 'var(--green)'}}>Mark as Resolved</button>
                             </div>
                         </form>
                     </div>

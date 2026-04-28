@@ -55,7 +55,7 @@ export default function OpsManagerDashboard() {
     const handleSubmit = async () => {
         setError('');
         if (!form.origin || !form.destination || !form.vehicleId || !form.driverId || !form.customerId) {
-            setError('Lütfen zorunlu (*) alanları doldurun.');
+            setError('Please fill in the required (*) fields.');
             return;
         }
         setSubmitting(true);
@@ -73,7 +73,7 @@ export default function OpsManagerDashboard() {
             });
             setShowModal(false); setForm(emptyForm); fetchAll();
         } catch (e) {
-            setError(e.response?.data?.message || 'Sefer oluşturulamadı.');
+            setError(e.response?.data?.message || 'Failed to create trip.');
         } finally {
             setSubmitting(false);
         }
@@ -95,36 +95,36 @@ export default function OpsManagerDashboard() {
             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(245,158,11,0.4)'; }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
         >
-            + Yeni Sefer
+            + New Trip
         </button>
     );
 
     return (
         <div style={{ padding: '0 0 32px', height: '100%', overflowY: 'auto' }}>
             <PageHeader
-                title="Operasyon Yöneticisi"
-                sub="Sefer planlama ve filo koordinasyonu"
-                breadcrumb="Operasyonlar"
+                title="Operations Manager"
+                sub="Trip planning and fleet coordination"
+                breadcrumb="Operations"
                 action={createBtn}
             />
 
             <StatRow>
-                <StatCard label="Aktif Sefer"  value={trips.filter(t => t.status === 'InTransit').length} color="var(--blue)"   icon="🚛" />
-                <StatCard label="Planlı Sefer" value={trips.filter(t => t.status === 'Planned').length}   color="var(--purple)" icon="📋" />
-                <StatCard label="Müsait Araç"  value={vehicles.length}                                     color="var(--green)"  icon="🚘" />
-                <StatCard label="Tamamlanan"   value={trips.filter(t => t.status === 'Delivered').length}  color="var(--accent)" icon="✅" />
+                <StatCard label="Active Trips"  value={trips.filter(t => t.status === 'InTransit').length} color="var(--blue)"   icon="🚛" />
+                <StatCard label="Planned Trips" value={trips.filter(t => t.status === 'Planned').length}   color="var(--purple)" icon="📋" />
+                <StatCard label="Available Vehicles"  value={vehicles.length}                                     color="var(--green)"  icon="🚘" />
+                <StatCard label="Completed"   value={trips.filter(t => t.status === 'Delivered').length}  color="var(--accent)" icon="✅" />
             </StatRow>
 
             <Tabs
                 tabs={['trips', 'vehicles']}
-                labels={['Tüm Seferler', 'Müsait Araçlar']}
+                labels={['All Trips', 'Available Vehicles']}
                 active={tab}
                 onChange={setTab}
             />
 
             {tab === 'trips' && (
                 <Table
-                    headers={['Kod', 'Güzergah', 'Sürücü', 'Araç', 'Tarih', 'Durum']}
+                    headers={['Code', 'Route', 'Driver', 'Vehicle', 'Date', 'Status']}
                     rows={trips.map(t => [
                         <span style={{ color: 'var(--accent)', fontWeight: 700 }}>{t.tripCode}</span>,
                         `${t.origin} → ${t.destination}`,
@@ -136,7 +136,7 @@ export default function OpsManagerDashboard() {
             )}
             {tab === 'vehicles' && (
                 <Table
-                    headers={['Plaka', 'Marka', 'Model', 'Max Yük', 'Km']}
+                    headers={['Plate', 'Brand', 'Model', 'Max Load', 'Mileage']}
                     rows={vehicles.map(v => [
                         <span style={{ color: 'var(--accent)', fontWeight: 700 }}>{v.plateNumber}</span>,
                         v.brand, v.model, `${v.maxLoadCapacityTons}t`,
@@ -165,8 +165,8 @@ export default function OpsManagerDashboard() {
                         {/* Modal header */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                             <div>
-                                <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-primary)' }}>Yeni Sefer Oluştur</div>
-                                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 3 }}>Zorunlu alanlar (*) ile işaretlidir</div>
+                                <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-primary)' }}>Create New Trip</div>
+                                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 3 }}>Required fields are marked with (*)</div>
                             </div>
                             <button onClick={closeModal} style={{
                                 background: 'transparent', border: '1px solid var(--border)',
@@ -187,12 +187,12 @@ export default function OpsManagerDashboard() {
                         {/* Text inputs grid */}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                             {[
-                                { name: 'origin',              label: 'Çıkış Noktası *',    type: 'text',           placeholder: 'İstanbul (Tuzla OSB)' },
-                                { name: 'destination',         label: 'Varış Noktası *',     type: 'text',           placeholder: 'Ankara (OSTİM)' },
-                                { name: 'cargoWeightTons',     label: 'Yük Ağırlığı (ton)', type: 'number',         placeholder: '18.5' },
-                                { name: 'estimatedDistanceKm', label: 'Mesafe (km)',         type: 'number',         placeholder: '450' },
-                                { name: 'plannedDepartureDate',label: 'Planlı Kalkış *',    type: 'datetime-local', placeholder: '' },
-                                { name: 'cargoDescription',    label: 'Kargo Açıklaması',   type: 'text',           placeholder: 'Çelik Rulo' },
+                                { name: 'origin',              label: 'Origin *',    type: 'text',           placeholder: 'Istanbul (Tuzla)' },
+                                { name: 'destination',         label: 'Destination *',     type: 'text',           placeholder: 'Ankara (OSTIM)' },
+                                { name: 'cargoWeightTons',     label: 'Cargo Weight (tons)', type: 'number',         placeholder: '18.5' },
+                                { name: 'estimatedDistanceKm', label: 'Distance (km)',         type: 'number',         placeholder: '450' },
+                                { name: 'plannedDepartureDate',label: 'Planned Departure *',    type: 'datetime-local', placeholder: '' },
+                                { name: 'cargoDescription',    label: 'Cargo Description',   type: 'text',           placeholder: 'Steel Rolls' },
                             ].map(f => (
                                 <div key={f.name} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                                     <label style={labelStyle}>{f.label}</label>
@@ -210,9 +210,9 @@ export default function OpsManagerDashboard() {
                         {/* Selects */}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginTop: 14 }}>
                             {[
-                                { name: 'vehicleId',  label: 'Araç *',    options: vehicles.map(v => ({ value: v.id, label: `${v.plateNumber} (${v.maxLoadCapacityTons}t)` })) },
-                                { name: 'driverId',   label: 'Sürücü *',  options: drivers.map(d => ({ value: d.id, label: d.fullName })) },
-                                { name: 'customerId', label: 'Müşteri *', options: customers.map(c => ({ value: c.id, label: c.fullName })) },
+                                { name: 'vehicleId',  label: 'Vehicle *',    options: vehicles.map(v => ({ value: v.id, label: `${v.plateNumber} (${v.maxLoadCapacityTons}t)` })) },
+                                { name: 'driverId',   label: 'Driver *',  options: drivers.map(d => ({ value: d.id, label: d.fullName })) },
+                                { name: 'customerId', label: 'Customer *', options: customers.map(c => ({ value: c.id, label: c.fullName })) },
                             ].map(sel => (
                                 <div key={sel.name} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                                     <label style={labelStyle}>{sel.label}</label>
@@ -222,7 +222,7 @@ export default function OpsManagerDashboard() {
                                         onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 3px var(--accent-dim)'; e.target.style.background = 'var(--surface)'; }}
                                         onBlur={e =>  { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; e.target.style.background = 'var(--surface-2)'; }}
                                     >
-                                        <option value="">Seç...</option>
+                                        <option value="">Select...</option>
                                         {sel.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                                     </select>
                                 </div>
@@ -240,7 +240,7 @@ export default function OpsManagerDashboard() {
                             }}
                             onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-3)'}
                             onMouseLeave={e => e.currentTarget.style.background = 'var(--surface-2)'}
-                            >İptal</button>
+                            >Cancel</button>
                             <button onClick={handleSubmit} disabled={submitting} style={{
                                 background: submitting ? 'var(--surface-3)' : 'var(--accent)',
                                 border: 'none', color: '#FFFFFF',
@@ -252,7 +252,7 @@ export default function OpsManagerDashboard() {
                             onMouseEnter={e => { if (!submitting) { e.currentTarget.style.filter = 'brightness(1.08)'; e.currentTarget.style.boxShadow = '0 4px 14px var(--accent-dim)'; }}}
                             onMouseLeave={e => { e.currentTarget.style.filter = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
                             >
-                                {submitting ? 'Oluşturuluyor...' : 'Sefer Oluştur ✓'}
+                                {submitting ? 'Creating...' : 'Create Trip ✓'}
                             </button>
                         </div>
                     </div>

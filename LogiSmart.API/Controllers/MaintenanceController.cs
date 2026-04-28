@@ -17,15 +17,43 @@ public class MaintenanceController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var logs = await _uow.MaintenanceLogs.GetAllAsync();
-        return Ok(logs);
+        var logs = await _uow.MaintenanceLogs.GetAllWithIncludesAsync(m => m.Vehicle, m => m.Technician);
+        var result = logs.Select(m => new
+        {
+            m.Id,
+            m.VehicleId,
+            VehiclePlate = m.Vehicle?.PlateNumber ?? $"Vehicle #{m.VehicleId}",
+            m.TechnicianId,
+            TechnicianName = m.Technician != null ? $"{m.Technician.FirstName} {m.Technician.LastName}" : $"Technician #{m.TechnicianId}",
+            m.ReportedDate,
+            m.ResolvedDate,
+            m.IssueDescription,
+            m.ResolutionNotes,
+            m.RepairCost,
+            m.IsResolved
+        });
+        return Ok(result);
     }
 
     [HttpGet("unresolved")]
     public async Task<IActionResult> GetUnresolved()
     {
-        var logs = await _uow.MaintenanceLogs.FindAsync(m => !m.IsResolved);
-        return Ok(logs);
+        var logs = await _uow.MaintenanceLogs.FindWithIncludesAsync(m => !m.IsResolved, m => m.Vehicle, m => m.Technician);
+        var result = logs.Select(m => new
+        {
+            m.Id,
+            m.VehicleId,
+            VehiclePlate = m.Vehicle?.PlateNumber ?? $"Vehicle #{m.VehicleId}",
+            m.TechnicianId,
+            TechnicianName = m.Technician != null ? $"{m.Technician.FirstName} {m.Technician.LastName}" : $"Technician #{m.TechnicianId}",
+            m.ReportedDate,
+            m.ResolvedDate,
+            m.IssueDescription,
+            m.ResolutionNotes,
+            m.RepairCost,
+            m.IsResolved
+        });
+        return Ok(result);
     }
 
     [HttpPost]

@@ -17,32 +17,32 @@ export default function CustomerDashboard() {
     return (
         <div style={{ padding: '0 0 32px', height: '100%', overflowY: 'auto' }}>
             <PageHeader
-                title="Kargo Takip"
-                sub={`${user?.fullName} — Gönderi durumunuz`}
-                breadcrumb="Kargolarım"
+                title="Cargo Tracking"
+                sub={`${user?.fullName} — Your shipment status`}
+                breadcrumb="My Shipments"
             />
 
             <StatRow>
-                <StatCard label="Toplam Gönderi"  value={trips.length}                                       color="var(--blue)"   icon="📦" />
-                <StatCard label="Planlanan"       value={trips.filter(t => t.status === 'Planned').length}   color="var(--purple)" icon="📅" />
-                <StatCard label="Yolda"           value={trips.filter(t => t.status === 'InTransit').length} color="var(--accent)" icon="🚛" />
-                <StatCard label="Teslim Edildi"   value={trips.filter(t => t.status === 'Delivered').length} color="var(--green)"  icon="✅" />
+                <StatCard label="Total Shipments"  value={trips.length}                                       color="var(--blue)"   icon="📦" />
+                <StatCard label="Planned"       value={trips.filter(t => t.status === 'Planned').length}   color="var(--purple)" icon="📅" />
+                <StatCard label="In Transit"           value={trips.filter(t => t.status === 'InTransit').length} color="var(--accent)" icon="🚛" />
+                <StatCard label="Delivered"   value={trips.filter(t => t.status === 'Delivered').length} color="var(--green)"  icon="✅" />
             </StatRow>
 
             <div style={{ margin: '0 28px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
                 <div style={{ padding: '13px 20px', borderBottom: '1px solid var(--border)', fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
-                    Gönderilerim
+                    My Shipments
                 </div>
                 {trips.length === 0 ? (
                     <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)' }}>
                         <div style={{ fontSize: 32, marginBottom: 8 }}>📭</div>
-                        Henüz gönderi kaydı bulunamadı.
+                        No shipment records found.
                     </div>
                 ) : (
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr style={{ background: 'var(--surface-2)' }}>
-                                {['Takip Kodu', 'Çıkış', 'Varış', 'Kargo', 'Tahmini Kalkış', 'Durum'].map(h => (
+                                {['Tracking Code', 'Origin', 'Destination', 'Cargo', 'Est. Departure', 'Status'].map(h => (
                                     <th key={h} style={{ padding: '11px 16px', textAlign: 'left', fontSize: 11, color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8, fontFamily: 'var(--font-mono)', borderBottom: '1px solid var(--border)' }}>
                                         {h}
                                     </th>
@@ -63,7 +63,7 @@ export default function CustomerDashboard() {
                                         <td style={{ padding: '12px 16px', fontSize: 13, color: 'var(--text-primary)' }}>{t.origin}</td>
                                         <td style={{ padding: '12px 16px', fontSize: 13, color: 'var(--text-primary)' }}>{t.destination}</td>
                                         <td style={{ padding: '12px 16px', fontSize: 12, color: 'var(--text-secondary)' }}>{t.cargoWeightTons}t</td>
-                                        <td style={{ padding: '12px 16px', fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{new Date(t.plannedDepartureDate).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                                        <td style={{ padding: '12px 16px', fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{new Date(t.plannedDepartureDate).toLocaleString('en-US', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })}</td>
                                         <td style={{ padding: '12px 16px' }}><Badge status={t.status} /></td>
                                     </tr>
                                 );

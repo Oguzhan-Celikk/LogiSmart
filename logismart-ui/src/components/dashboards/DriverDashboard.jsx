@@ -20,15 +20,15 @@ export default function DriverDashboard() {
         try {
             await api.patch(`/trip/${tripId}/status`, { status });
             await loadTrips();
-        } catch { alert('Durum güncellenemedi.'); }
+        } catch { alert('Status update failed.'); }
     };
 
     return (
         <div style={{ padding: '0 0 32px', height: '100%', overflowY: 'auto' }}>
             <PageHeader
-                title="Sürücü Paneli"
-                sub={`Hoş geldin, ${user?.fullName}`}
-                breadcrumb="Sürücü"
+                title="Driver Dashboard"
+                sub={`Welcome, ${user?.fullName}`}
+                breadcrumb="Driver"
             />
 
             {/* Active trip card */}
@@ -46,15 +46,15 @@ export default function DriverDashboard() {
                         {/* Glow */}
                         <div style={{ position:'absolute', top:-40, right:-40, width:140, height:140, borderRadius:'50%', background:'radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%)', pointerEvents:'none' }} />
                         <div style={{ fontSize: 11, color: 'var(--blue)', fontWeight: 700, letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 10, fontFamily: 'var(--font-mono)' }}>
-                            🚛 Aktif Sefer
+                            🚛 Active Trip
                         </div>
                         <div style={{ fontSize: 22, fontWeight: 800, marginBottom: 6, color: 'var(--text-primary)' }}>
                             {active.origin} → {active.destination}
                         </div>
                         <div style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 18, display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                            <span>Kod: <span style={{ color: 'var(--accent)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{active.tripCode}</span></span>
-                            <span>Araç: <span style={{ color: 'var(--text-secondary)' }}>{active.vehiclePlate}</span></span>
-                            <span>Yük: <span style={{ color: 'var(--text-secondary)' }}>{active.cargoWeightTons}t</span></span>
+                            <span>Code: <span style={{ color: 'var(--accent)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{active.tripCode}</span></span>
+                            <span>Vehicle: <span style={{ color: 'var(--text-secondary)' }}>{active.vehiclePlate}</span></span>
+                            <span>Cargo: <span style={{ color: 'var(--text-secondary)' }}>{active.cargoWeightTons}t</span></span>
                         </div>
                         <button
                             onClick={() => updateStatus(active.id, 'Delivered')}
@@ -68,7 +68,7 @@ export default function DriverDashboard() {
                             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(16,185,129,0.4)'; }}
                             onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
                         >
-                            ✓ Teslim Edildi Olarak İşaretle
+                            ✓ Mark as Delivered
                         </button>
                     </div>
                 ) : (
@@ -78,26 +78,26 @@ export default function DriverDashboard() {
                         color: 'var(--text-muted)', textAlign: 'center', fontSize: 14,
                     }}>
                         <div style={{ fontSize: 28, marginBottom: 8 }}>🟢</div>
-                        Şu an aktif seferiniz yok.
+                        You have no active trips at the moment.
                     </div>
                 )}
             </div>
 
             <StatRow>
-                <StatCard label="Toplam Sefer" value={trips.length}   color="var(--blue)"   icon="📦" />
-                <StatCard label="Planlı"        value={planned.length} color="var(--purple)" icon="📅" />
-                <StatCard label="Tamamlanan"    value={completed.length} color="var(--green)" icon="✅" />
+                <StatCard label="Total Trips" value={trips.length}   color="var(--blue)"   icon="📦" />
+                <StatCard label="Planned"        value={planned.length} color="var(--purple)" icon="📅" />
+                <StatCard label="Completed"    value={completed.length} color="var(--green)" icon="✅" />
             </StatRow>
 
             {/* All trips table */}
             <div style={{ margin: '0 28px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
                 <div style={{ padding: '13px 20px', borderBottom: '1px solid var(--border)', fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
-                    Tüm Seferlerim
+                    All My Trips
                 </div>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                         <tr style={{ background: 'var(--surface-2)' }}>
-                            {['Kod', 'Güzergah', 'Yük', 'Tarih', 'Durum', 'İşlem'].map(h => (
+                            {['Code', 'Route', 'Cargo', 'Date', 'Status', 'Action'].map(h => (
                                 <th key={h} style={{ padding: '11px 16px', textAlign: 'left', fontSize: 11, color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8, fontFamily: 'var(--font-mono)', borderBottom: '1px solid var(--border)' }}>
                                     {h}
                                 </th>
@@ -117,7 +117,7 @@ export default function DriverDashboard() {
                                     <td style={{ padding: '12px 16px', fontSize: 12, color: 'var(--accent)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>{t.tripCode}</td>
                                     <td style={{ padding: '12px 16px', fontSize: 13, color: 'var(--text-primary)' }}>{t.origin} → {t.destination}</td>
                                 <td style={{ padding: '12px 16px', fontSize: 12, color: 'var(--text-secondary)' }}>{t.cargoWeightTons}t</td>
-                                <td style={{ padding: '12px 16px', fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{new Date(t.plannedDepartureDate).toLocaleDateString('tr-TR')}</td>
+                                <td style={{ padding: '12px 16px', fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{new Date(t.plannedDepartureDate).toLocaleDateString('en-US')}</td>
                                 <td style={{ padding: '12px 16px' }}><Badge status={t.status} /></td>
                                 <td style={{ padding: '12px 16px' }}>
                                     {t.status === 'Planned' && (
@@ -127,7 +127,7 @@ export default function DriverDashboard() {
                                             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(59,130,246,0.2)'; }}
                                             onMouseLeave={e => { e.currentTarget.style.background = 'rgba(59,130,246,0.1)'; }}
                                         >
-                                            Yola Çık →
+                                            Depart →
                                         </button>
                                     )}
                                 </td>

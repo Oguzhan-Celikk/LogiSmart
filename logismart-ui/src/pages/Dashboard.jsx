@@ -19,12 +19,12 @@ const ROLE_COLOR = {
 };
 
 const ROLE_LABEL = {
-    Admin:                'SİSTEM YÖNETİCİSİ',
-    OperationsManager:    'OPERASYON YÖNETİCİSİ',
-    Driver:               'SÜRÜCÜ',
-    Customer:             'MÜŞTERİ',
-    MaintenanceTechnician:'TEKNİSYEN',
-    FinanceSpecialist:    'FİNANS UZMANI',
+    Admin:                'SYSTEM ADMINISTRATOR',
+    OperationsManager:    'OPERATIONS MANAGER',
+    Driver:               'DRIVER',
+    Customer:             'CUSTOMER',
+    MaintenanceTechnician:'TECHNICIAN',
+    FinanceSpecialist:    'FINANCE SPECIALIST',
 };
 
 export default function Dashboard() {
@@ -53,7 +53,7 @@ export default function Dashboard() {
             case 'Customer':               return <CustomerDashboard />;
             case 'MaintenanceTechnician':  return <TechnicianDashboard />;
             case 'FinanceSpecialist':      return <FinanceDashboard />;
-            default: return <div style={{color:'var(--text-secondary)',padding:40}}>Bilinmeyen rol.</div>;
+            default: return <div style={{color:'var(--text-secondary)',padding:40}}>Unknown role.</div>;
         }
     };
 
@@ -83,7 +83,7 @@ export default function Dashboard() {
                         <div style={s.userName}>{user?.fullName}</div>
                         <div style={{ ...s.userRole, color: accentColor }}>{ROLE_LABEL[user?.role] || user?.role}</div>
                     </div>
-                    <div style={{ ...s.statusDot, background: '#10b981' }} title="Çevrimiçi" />
+                    <div style={{ ...s.statusDot, background: '#10b981' }} title="Online" />
                 </div>
 
 
@@ -94,10 +94,10 @@ export default function Dashboard() {
                 {/* Clock widget */}
                 <div style={s.clockWidget}>
                     <div style={s.clockTime}>
-                        {time.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        {time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
                     </div>
                     <div style={s.clockDate}>
-                        {time.toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                        {time.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' })}
                     </div>
                 </div>
 
@@ -109,7 +109,7 @@ export default function Dashboard() {
                     onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444'; }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
                 >
-                    <span>↩</span> Çıkış Yap
+                    <span>↩</span> Log Out
                 </button>
             </aside>
 
@@ -120,7 +120,7 @@ export default function Dashboard() {
                     <button
                         id="theme-toggle"
                         onClick={toggle}
-                        title={isDark ? 'Açık Temaya Geç' : 'Koyu Temaya Geç'}
+                        title={isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
                         style={s.themeBtn}
                         onMouseEnter={e => {
                             e.currentTarget.style.background = 'var(--surface-2)';

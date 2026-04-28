@@ -200,7 +200,7 @@ export function Table({ headers, rows }) {
                                 color: 'var(--text-muted)', fontSize: 13,
                             }}>
                                 <div style={{ fontSize: 32, marginBottom: 8 }}>📭</div>
-                                Gösterilecek veri bulunamadı.
+                                No data to display.
                             </td>
                         </tr>
                     ) : rows.map((row, i) => (

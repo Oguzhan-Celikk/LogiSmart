@@ -13,13 +13,6 @@ const PARTICLES = Array.from({ length: 18 }, (_, i) => ({
     duration: Math.random() * 8 + 8,
 }));
 
-const TEST_ACCOUNTS = [
-    { icon: '⬡', label: 'Admin',        email: 'ahmet.kaya@logismart.com' },
-    { icon: '📋', label: 'Ops Manager',  email: 'elif.sahin@logismart.com' },
-    { icon: '🚛', label: 'Driver',       email: 'murat.yilmaz@logismart.com' },
-    { icon: '💳', label: 'Finance',      email: 'zeynep.koc@logismart.com' },
-];
-
 export default function Login() {
     const [email, setEmail]       = useState('');
     const [password, setPassword] = useState('');
@@ -42,7 +35,7 @@ export default function Login() {
             );
             navigate('/dashboard');
         } catch {
-            setError('E-posta veya şifre hatalı.');
+            setError('Invalid email or password.');
         } finally {
             setLoading(false);
         }
@@ -54,7 +47,7 @@ export default function Login() {
             <button
                 id="login-theme-toggle"
                 onClick={toggle}
-                title={isDark ? 'Açık Temaya Geç' : 'Koyu Temaya Geç'}
+                title={isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
                 style={{
                     position: 'fixed', top: 16, right: 20, zIndex: 100,
                     width: 38, height: 38, borderRadius: '50%',
@@ -103,7 +96,7 @@ export default function Login() {
 
                 <div style={{ textAlign: 'left', marginBottom: 28 }}>
                     <h1 style={s.title}>LogiSmart</h1>
-                    <p style={s.subtitle}>Fleet ERP — Sisteme Giriş Yap</p>
+                    <p style={s.subtitle}>Fleet ERP — System Login</p>
                 </div>
 
                 {error && (
@@ -115,7 +108,7 @@ export default function Login() {
                 <form onSubmit={handleSubmit}>
                     {/* Email */}
                     <div style={{ marginBottom: 16 }}>
-                        <label style={s.label}>E-POSTA</label>
+                        <label style={s.label}>EMAIL</label>
                         <input
                             id="login-email"
                             style={{ ...s.input, ...(focused === 'email' ? s.inputFocused : {}) }}
@@ -124,14 +117,14 @@ export default function Login() {
                             onChange={e => setEmail(e.target.value)}
                             onFocus={() => setFocused('email')}
                             onBlur={() => setFocused('')}
-                            placeholder="ornek@logismart.com"
+                            placeholder="example@logismart.com"
                             required
                         />
                     </div>
 
                     {/* Password */}
                     <div style={{ marginBottom: 24 }}>
-                        <label style={s.label}>ŞİFRE</label>
+                        <label style={s.label}>PASSWORD</label>
                         <input
                             id="login-password"
                             style={{ ...s.input, ...(focused === 'password' ? s.inputFocused : {}) }}
@@ -156,35 +149,13 @@ export default function Login() {
                         {loading ? (
                             <span style={{ display:'flex', alignItems:'center', gap:8, justifyContent:'center' }}>
                                 <span style={{ width:14, height:14, border:'2px solid rgba(255,255,255,0.3)', borderTopColor:'#fff', borderRadius:'50%', display:'inline-block', animation:'spin-slow 0.7s linear infinite' }} />
-                                Giriş yapılıyor...
+                                Logging in...
                             </span>
-                        ) : 'Giriş Yap →'}
+                        ) : 'Login →'}
                     </button>
                 </form>
 
-                {/* Test accounts */}
-                <div style={s.hintsWrap}>
-                    <div style={s.hintsTitle}>
-                        <span style={{ color: 'var(--text-muted)' }}>───</span>
-                        &nbsp; Test Hesapları &nbsp;
-                        <span style={{ color: 'var(--text-muted)' }}>───</span>
-                    </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                        {TEST_ACCOUNTS.map(a => (
-                            <button
-                                key={a.email}
-                                type="button"
-                                onClick={() => { setEmail(a.email); setPassword('password123'); }}
-                                style={s.chip}
-                                onMouseEnter={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.color = 'var(--accent)'; e.target.style.background = 'var(--accent-dim)'; }}
-                                onMouseLeave={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.color = 'var(--text-secondary)'; e.target.style.background = 'transparent'; }}
-                            >
-                                {a.icon} {a.label}
-                            </button>
-                        ))}
-                    </div>
-                    <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 10, textAlign:'center' }}>Şifre: <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>password123</span></p>
-                </div>
+
             </div>
         </div>
     );
@@ -293,28 +264,5 @@ const s = {
     },
     btnLoading: {
         opacity: 0.7, cursor: 'not-allowed',
-    },
-    hintsWrap: {
-        marginTop: 24,
-        padding: '16px',
-        background: 'var(--surface-2)',
-        borderRadius: 'var(--radius-md)',
-        border: '1px solid var(--border)',
-    },
-    hintsTitle: {
-        fontSize: 11, color: 'var(--text-secondary)', fontWeight: 600,
-        textTransform: 'uppercase', letterSpacing: 1.5,
-        marginBottom: 12, textAlign: 'center',
-    },
-    chip: {
-        background: 'transparent',
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius-xl)',
-        padding: '5px 12px',
-        color: 'var(--text-secondary)',
-        fontSize: 12, fontWeight: 500,
-        cursor: 'pointer',
-        fontFamily: 'var(--font-sans)',
-        transition: 'var(--transition)',
     },
 };

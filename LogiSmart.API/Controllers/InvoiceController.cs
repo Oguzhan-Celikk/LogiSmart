@@ -1,4 +1,4 @@
-﻿using LogiSmart.Core.Entities;
+using LogiSmart.Core.Entities;
 using LogiSmart.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,8 +17,22 @@ public class InvoiceController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var invoices = await _uow.Invoices.GetAllAsync();
-        return Ok(invoices);
+        var invoices = await _uow.Invoices.GetAllWithIncludesAsync(i => i.Trip);
+        var result = invoices.Select(i => new
+        {
+            i.Id,
+            i.InvoiceNumber,
+            i.TripId,
+            TripCode = i.Trip?.TripCode ?? $"Trip #{i.TripId}",
+            i.FuelCost,
+            i.DriverAllowance,
+            i.MaintenanceCost,
+            i.ServiceFee,
+            i.TotalAmount,
+            i.IsPaid,
+            i.PaidDate
+        });
+        return Ok(result);
     }
 
     [HttpPost]
